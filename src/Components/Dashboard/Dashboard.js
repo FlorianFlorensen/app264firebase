@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     MDBContainer,
     MDBInput,
@@ -16,9 +16,9 @@ import "./Dashboard.css"
 import "./ImageGallery/Image/ImageContainer.css";
 import {firebase_storage} from "../../firebase";
 import {database} from "../../firebase";
-import {collection, getDocs, query, addDoc, where, doc} from "@firebase/firestore";
-import Cropper from "react-cropper";
+import {collection, getDocs, query, where} from "@firebase/firestore";
 import CropperModal from "./CropperModal/CropperModal";
+import {addFileToStore} from "../../firebase/database/databaseService";
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
@@ -88,6 +88,15 @@ function Dashboard() {
     );
 
     function handleEditButton(event) {
+        imagesList.filter(img => img.storage_url === event.target.id);
+
+         let tmp = {
+            uuid : "",
+            storage_url: "",
+            name : "",
+            mime_type: "",
+        }
+
         setImage(event.target.id)
         setCentredModal(true);
     }
@@ -104,6 +113,7 @@ function Dashboard() {
     }
 
     function handleChange(event) {
+        console.log(event.target.files);
         setFilesToUpload(event.target.files);
     }
 
@@ -139,7 +149,7 @@ function Dashboard() {
                     setPercent(percent)
                     // download url
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addToStore(file.name, url)
+                        addFileToStore(file.name, url)
                     });
                 }
             );
@@ -179,17 +189,6 @@ function Dashboard() {
             console.log(filterResult)
             setGalleryFilterList(filterResult);
         })();
-    }
-
-    function addToStore(filename, download_url) {
-        const collectionRef = collection(database, "files");
-        addDoc(collectionRef, {
-            name: filename,
-            storage_url: download_url,
-            is_widget_ready: false,
-        })
-            .then(res => console.log(res))
-            .catch(err => console.log(err));
     }
 
     function retreiveImages() {
