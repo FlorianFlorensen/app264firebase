@@ -1,0 +1,214 @@
+import React, {useEffect, useRef, useState} from 'react';
+import {
+    MDBContainer,
+    MDBInput,
+    MDBProgress,
+    MDBProgressBar,
+    MDBTabs,
+    MDBTabsContent,
+    MDBTabsItem,
+    MDBTabsLink, MDBTabsPane
+} from "mdb-react-ui-kit";
+import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
+import axios from "axios";
+import ImageGallery from "./ImageGallery/ImageGallery";
+import "./Dashboard.css"
+import "./ImageGallery/Image/ImageContainer.css";
+import {firebase_storage} from "../../firebase";
+import {database} from "../../firebase";
+import {collection, getDocs, query, addDoc, where, doc} from "@firebase/firestore";
+import Cropper from "react-cropper";
+import CropperModal from "./CropperModal/CropperModal";
+
+function Dashboard() {
+    const [imagesList, setImagesList] = useState([]);
+    const [galleryFilterList, setGalleryFilterList] = useState([])
+    //all Images from Database / Storage
+    const [allImages, setAllImages] = useState([])
+    const [error, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    //all Files States for uploading
+    const [filesToUpload, setFilesToUpload] = useState([]);
+    const [percent, setPercent] = useState();
+    const [uploading, setUploading] = useState(false);
+    //Tab Navigation
+    const [activeTab, setActiveTab] = useState('tab1');
+    //Image that is shown inside Cropper
+    const [image, setImage] = useState();
+    const [centredModal, setCentredModal] = useState(false);
+
+
+    useEffect(() => {
+        retreiveImages();
+    }, [])
+
+    return (
+        <div id="dashboard">
+            <section className="section">
+                <MDBContainer className="h-100">
+                    <MDBInput label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
+                    <input type="file" accept="image/*" multiple onChange={handleChange}/>
+                    <button onClick={handleUpload}>Upload to Firebase</button>
+                    {uploading &&
+                        <MDBProgress height='20'>
+                            <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
+                                {percent}%
+                            </MDBProgressBar>
+                        </MDBProgress>
+                    }
+                    <MDBTabs justify>
+                        <MDBTabsItem>
+                            <MDBTabsLink onClick={() => handleTabClick('tab1')} active={activeTab === 'tab1'}>
+                                Needs Croping</MDBTabsLink>
+                        </MDBTabsItem>
+                        <MDBTabsItem>
+                            <MDBTabsLink onClick={() => handleTabClick('tab2')} active={activeTab === 'tab2'}>Ready for
+                                Widget</MDBTabsLink>
+                        </MDBTabsItem>
+                    </MDBTabs>
+                    <MDBTabsContent>
+                        <MDBTabsPane show={activeTab === 'tab1'}>
+                            <ImageGallery imageList={imagesList.filter((img) => !img.is_widget_ready)}
+                                          handleDeleteImage={handleDeleteButton}
+                                          handleEditButton={handleEditButton}/>
+                        </MDBTabsPane>
+                        <MDBTabsPane show={activeTab === 'tab2'}>
+
+                            <ImageGallery imageList={imagesList.filter((img) => img.is_widget_ready)}
+                                          handleDeleteImage={handleDeleteButton}
+                                          handleEditButton={handleEditButton}/>
+                        </MDBTabsPane>
+                    </MDBTabsContent>
+                </MDBContainer>
+            </section>
+            <section>
+                <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleShow} image={image}></CropperModal>
+            </section>
+        </div>
+    );
+
+    function handleEditButton(event) {
+        setImage(event.target.id)
+        setCentredModal(true);
+    }
+
+    function toggleShow() {
+        setCentredModal(!centredModal);
+    }
+
+    function handleTabClick(value) {
+        if (value === activeTab) {
+            return;
+        }
+        setActiveTab(value);
+    }
+
+    function handleChange(event) {
+        setFilesToUpload(event.target.files);
+    }
+
+    function handleUpload() {
+        if (!filesToUpload) {
+            return;
+        }
+
+        //for Progress Bar
+        setPercent(0); //Reset Progress Bar
+        let progressFraction = Math.round(100 / filesToUpload.length);
+        let totalProgress = 0;
+
+        for (let i = 0; i < filesToUpload.length; i++) {
+            const file = filesToUpload.item(i);
+            const storageRef = ref(firebase_storage, `/files/${file.name}`)
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            uploadTask.on(
+                "state_changed",
+                (snapshot) => {
+                    setUploading(true);
+                    //const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                    // update progress
+                    //setPercent(percent);
+                },
+                (err) => console.log(err),
+                () => {
+                    totalProgress = totalProgress + progressFraction;
+                    //console.log(totalProgress)
+                    console.log(i)
+                    let percent = i === filesToUpload.length - 1 ? 100 : totalProgress;
+                    setPercent(percent)
+                    // download url
+                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                        addToStore(file.name, url)
+                    });
+                }
+            );
+        }
+    }
+
+    function handleDeleteButton(event) {
+        console.log(event)
+        let id = event.target.value
+        event.preventDefault();
+        console.log("Delete this image " + id);
+        axios.delete(`/api/image/${id}`)
+            .then(() => {
+                //in case a previous delete attempt threw error we reset the error banner here
+                setError(false);
+
+                //remove the deleted image from state to get refresh
+                setImagesList(prevState => prevState.filter(
+                    image => !(image.uuid === event.target.id)));
+
+            }).catch(err => {
+            console.log(err);
+            setError(true);
+            setErrorMessage(
+                "Something unexpected happen when trying to delete Image");
+        })
+    }
+
+    function imageGalleryFilter(event) {
+        (async () => {
+            let filterResult = allImages
+                .filter((image) => {
+                    return image.original_filename.toUpperCase().includes(
+                            event.target.value.toUpperCase().trim())
+                        && event.target.value !== "";
+                });
+            console.log(filterResult)
+            setGalleryFilterList(filterResult);
+        })();
+    }
+
+    function addToStore(filename, download_url) {
+        const collectionRef = collection(database, "files");
+        addDoc(collectionRef, {
+            name: filename,
+            storage_url: download_url,
+            is_widget_ready: false,
+        })
+            .then(res => console.log(res))
+            .catch(err => console.log(err));
+    }
+
+    function retreiveImages() {
+        const allImages = collection(database, "files");
+        const q = query(allImages, where("is_widget_ready", "==", false));
+        getDocs(q)
+            .then(snapshot => {
+                let temp = [];
+                snapshot.forEach((doc) => {
+                    temp.push({
+                        uuid: doc.id,
+                        ...doc.data()
+                    });
+                })
+                setImagesList(temp);
+                console.log(temp);
+            })
+            .catch(error => console.log(error));
+    }
+}
+
+export default Dashboard;
