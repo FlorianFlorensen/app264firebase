@@ -82,22 +82,25 @@ function Dashboard() {
                 </MDBContainer>
             </section>
             <section>
-                <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleShow} image={image}></CropperModal>
+                {image &&
+                    <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleShow}
+                                  image={image}></CropperModal>
+                }
             </section>
         </div>
     );
 
     function handleEditButton(event) {
-        imagesList.filter(img => img.storage_url === event.target.id);
+        let tmp = imagesList.filter(img => img.storage_url === event.target.id).at(0);
 
-         let tmp = {
-            uuid : "",
-            storage_url: "",
-            name : "",
-            mime_type: "",
+        let selectedImage = {
+            ...tmp,
+            blob_url: "",
         }
 
-        setImage(event.target.id)
+        console.log(selectedImage)
+
+        setImage(selectedImage)
         setCentredModal(true);
     }
 
@@ -149,7 +152,7 @@ function Dashboard() {
                     setPercent(percent)
                     // download url
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addFileToStore(file.name, url)
+                        addFileToStore(file, url)
                     });
                 }
             );
@@ -204,7 +207,6 @@ function Dashboard() {
                     });
                 })
                 setImagesList(temp);
-                console.log(temp);
             })
             .catch(error => console.log(error));
     }

@@ -12,26 +12,24 @@ import Cropper from "react-cropper";
 import "./cropper.css"
 import CroppedImageModal from "./CroppedImageModal/CroppedImageModal";
 
-
+/**
+ * The tricky thing with the cropper is that you need to initialize when the modal element is actually rendered
+ * if you do it before it behaves strangely
+ */
 function CropperModal({image, showModal, setShowModal, toggleShow}) {
 
     const [cropper, setCropper] = useState();
     const cropperRef = useRef();
     const [showResult, setShowResult] = useState(false);
-    const [croppedImage, setCroppedImage] = useState({
-        blob_url: null,
-        mime_type: "",
-        name: "",
-    });
+    const [croppedImage, setCroppedImage] = useState(image);
 
     useEffect(() => {
         if (image != null) {
-            cropper && cropper.zoomTo(0).rotateTo(0)
-            console.log(image);
-            console.log(cropperRef)
+            //cropper && cropper.zoomTo(0).rotateTo(0)
+            console.log("the image ")
+            console.log(image)
             return;
         } else {
-            console.log("destroy Cropper")
             setCropper(null);
         }
     }, [image, cropper]);
@@ -58,7 +56,10 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
             imageSmoothingEnabled: true,
         });
         canvasData.toBlob((blob) => {
-            setCroppedImage(URL.createObjectURL(blob));
+            setCroppedImage({
+                ...croppedImage,
+                blob_url : URL.createObjectURL(blob),
+            });
         });
         setShowResult(true);
     }
@@ -75,7 +76,7 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                         <MDBModalBody>
                             <Cropper
                                 ref={cropperRef}
-                                src={image}
+                                src={croppedImage.storage_url}
                                 style={{height: 500, width: '100%'}}
                                 initialAspectRatio={1}
                                 viewMode={1}

@@ -11,14 +11,12 @@ import {
 
 function CroppedImageModal({croppedImage, show, setShow}) {
 
-    const [blobUrl, setBlobUrl] = useState(croppedImage);
-    const toggleShow = () => setShow(!show);
-
     useEffect(() => {
-        if (croppedImage != null) {
-            setBlobUrl(croppedImage);
-        }
+        console.log("inside the preview")
+        console.log(croppedImage)
     }, [croppedImage])
+
+    const toggleShow = () => setShow(!show);
 
     return (
         <>
@@ -32,7 +30,7 @@ function CroppedImageModal({croppedImage, show, setShow}) {
                             <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
                         </MDBModalHeader>
                         <MDBModalBody>
-                            <img src={blobUrl} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
+                            <img src={croppedImage.blob_url} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
                         </MDBModalBody>
                         <MDBModalFooter>
                             <MDBBtn color='secondary' onClick={toggleShow}>
