@@ -19,6 +19,7 @@ import {database} from "../../firebase";
 import {collection, getDocs, query, where} from "@firebase/firestore";
 import CropperModal from "./CropperModal/CropperModal";
 import {addFileToStore} from "../../firebase/database/databaseService";
+import {getFunctions, httpsCallable} from "firebase/functions";
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
@@ -36,6 +37,8 @@ function Dashboard() {
     //Image that is shown inside Cropper
     const [image, setImage] = useState();
     const [centredModal, setCentredModal] = useState(false);
+
+
 
 
     useEffect(() => {
@@ -92,14 +95,10 @@ function Dashboard() {
 
     function handleEditButton(event) {
         let tmp = imagesList.filter(img => img.storage_url === event.target.id).at(0);
-
         let selectedImage = {
             ...tmp,
             blob_url: "",
         }
-
-        console.log(selectedImage)
-
         setImage(selectedImage)
         setCentredModal(true);
     }
@@ -152,7 +151,7 @@ function Dashboard() {
                     setPercent(percent)
                     // download url
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addFileToStore(file, url)
+                        addFileToStore(file, url, false)
                     });
                 }
             );
@@ -168,7 +167,6 @@ function Dashboard() {
             .then(() => {
                 //in case a previous delete attempt threw error we reset the error banner here
                 setError(false);
-
                 //remove the deleted image from state to get refresh
                 setImagesList(prevState => prevState.filter(
                     image => !(image.uuid === event.target.id)));
@@ -196,7 +194,8 @@ function Dashboard() {
 
     function retreiveImages() {
         const allImages = collection(database, "files");
-        const q = query(allImages, where("is_widget_ready", "==", false));
+        //TODO : There is no way there is not a way to get all dcuments
+        const q = query(allImages);
         getDocs(q)
             .then(snapshot => {
                 let temp = [];
@@ -206,6 +205,7 @@ function Dashboard() {
                         ...doc.data()
                     });
                 })
+                console.log(temp);
                 setImagesList(temp);
             })
             .catch(error => console.log(error));

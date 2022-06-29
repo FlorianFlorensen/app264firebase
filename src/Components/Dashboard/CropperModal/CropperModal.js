@@ -11,12 +11,15 @@ import {
 import Cropper from "react-cropper";
 import "./cropper.css"
 import CroppedImageModal from "./CroppedImageModal/CroppedImageModal";
+import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
+import {firebase_storage} from "../../../firebase";
+import {addImageToStore} from "../../../firebase/database/databaseService";
 
 /**
  * The tricky thing with the cropper is that you need to initialize when the modal element is actually rendered
  * if you do it before it behaves strangely
  */
-function CropperModal({image, showModal, setShowModal, toggleShow}) {
+function CropperModal({image, showModal, setShowModal, toggleShow, uploadCroppedImage}) {
 
     const [cropper, setCropper] = useState();
     const cropperRef = useRef();
@@ -27,12 +30,16 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
         if (image != null) {
             //cropper && cropper.zoomTo(0).rotateTo(0)
             console.log("the image ")
-            console.log(image)
+            console.log(croppedImage)
             return;
         } else {
             setCropper(null);
         }
     }, [image, cropper]);
+
+    useEffect(() => {
+        console.log(croppedImage.file);
+    }, [croppedImage])
 
     /**
      * Modal
@@ -44,7 +51,6 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
     /**gs://test-848b6.appspot.com
      * Cropper
      */
-
 
     function onCrop() {
         const imageElement = cropperRef.current;
@@ -100,9 +106,35 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                     </MDBModalContent>
                 </MDBModalDialog>
             </MDBModal>
-            <CroppedImageModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}/>
+            <CroppedImageModal show={showResult} setShow={setShowResult} croppedImage={croppedImage} uploadCroppedImage={uploadCroppedImage}/>
         </>
     );
+
+    //TODO : dont write new one, update existing document instead
+    //TODO: anderer Name oder arbeischritte aufteilen
+    async function uploadCroppedImage() {
+        //TODO : Why are you like this
+        let blob;
+        await (async () => {
+            blob = await (await fetch(croppedImage.blob_url)).blob()
+        })();
+        const storageRef = ref(firebase_storage, `/files/${croppedImage.name}`)
+        const uploadTask = uploadBytesResumable(storageRef, blob);
+
+        uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+            },
+            (err) => console.log(err),
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    addImageToStore(croppedImage, url, true)
+                });
+            }
+        );
+        setShowModal(false);
+        setShowResult(false);
+    }
 }
 
 export default CropperModal;

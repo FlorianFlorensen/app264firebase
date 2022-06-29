@@ -8,13 +8,11 @@ import {
     MDBModalHeader,
     MDBModalTitle
 } from "mdb-react-ui-kit";
+import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
+import {firebase_storage} from "../../../../firebase";
+import {addFileToStore, addImageToStore} from "../../../../firebase/database/databaseService";
 
-function CroppedImageModal({croppedImage, show, setShow}) {
-
-    useEffect(() => {
-        console.log("inside the preview")
-        console.log(croppedImage)
-    }, [croppedImage])
+function CroppedImageModal({croppedImage, show, setShow, uploadCroppedImage}) {
 
     const toggleShow = () => setShow(!show);
 
@@ -36,7 +34,7 @@ function CroppedImageModal({croppedImage, show, setShow}) {
                             <MDBBtn color='secondary' onClick={toggleShow}>
                                 Close
                             </MDBBtn>
-                            <MDBBtn>Save changes</MDBBtn>
+                            <MDBBtn onClick={uploadCroppedImage}>Save changes</MDBBtn>
                         </MDBModalFooter>
                     </MDBModalContent>
                 </MDBModalDialog>
