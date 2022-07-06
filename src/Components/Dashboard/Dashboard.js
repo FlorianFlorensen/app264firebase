@@ -28,7 +28,7 @@ function Dashboard() {
     const [errorMessage, setErrorMessage] = useState("");
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
-    const [percent, setPercent] = useState();
+    const [percent, setPercent] = useState(0);
     const [uploading, setUploading] = useState(false);
     //Tab Navigation
     const [activeTab, setActiveTab] = useState('tab1');
@@ -36,9 +36,10 @@ function Dashboard() {
     const [image, setImage] = useState();
     const [centredModal, setCentredModal] = useState(false);
 
+    //TODO: This is stupid, i need a way to refresh my imagelist on edit, delete, add.
     useEffect(() => {
         retreiveImages();
-    }, [])
+    }, [activeTab])
 
     return (
         <div id="dashboard">
@@ -118,7 +119,8 @@ function Dashboard() {
         }
         //for Progress Bar
         setPercent(0); //Reset Progress Bar
-        let progressFraction = Math.round(100 / filesToUpload.length);
+        let progressFraction = Math.floor(100 / filesToUpload.length);
+        let filesLeft = filesToUpload.length - 1;
         let totalProgress = 0;
 
         for (let i = 0; i < filesToUpload.length; i++) {
@@ -129,18 +131,13 @@ function Dashboard() {
                 "state_changed",
                 (snapshot) => {
                     setUploading(true);
-                    //const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                    // update progress
-                    //setPercent(percent);
                 },
                 (err) => console.log(err),
                 () => {
-                    totalProgress = totalProgress + progressFraction;
-                    //console.log(totalProgress)
-                    console.log(i)
-                    let percent = i === filesToUpload.length - 1 ? 100 : totalProgress;
-                    setPercent(percent)
-                    // download url
+                    console.log(filesLeft )
+                    totalProgress += progressFraction
+                    setPercent(filesLeft > 0 ? totalProgress : 100)
+                    filesLeft--;
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
                         addFileToStore(file, url, false)
                     });
