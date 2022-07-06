@@ -91,11 +91,8 @@ function Dashboard() {
     );
 
     function handleEditButton(event) {
-        let tmp = imagesList.filter(img => img.storage_url === event.target.id).at(0);
-        let selectedImage = {
-            ...tmp,
-        }
-        console.log("selected image", image);
+        let selectedImage = imagesList.filter(img => img.storage_url === event.target.id).at(0);
+        console.log("selected image", selectedImage);
         setImage(selectedImage)
         setCentredModal(true);
     }

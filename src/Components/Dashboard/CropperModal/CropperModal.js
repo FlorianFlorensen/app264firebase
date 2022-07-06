@@ -30,6 +30,7 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
     useEffect(() => {
         if (image != null) {
             //cropper && cropper.zoomTo(0).rotateTo(0)
+            setCroppedImage(image);
             return;
         } else {
             setCropper(null);
@@ -42,7 +43,6 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
     function handleClose() {
         setCropper(false);
     }
-
 
     function onCrop() {
         const imageElement = cropperRef.current;
@@ -63,6 +63,10 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                 })
                 setShowResult(true)
             });
+    }
+
+    if (!showModal) {
+        return <></>;
     }
 
     return (
