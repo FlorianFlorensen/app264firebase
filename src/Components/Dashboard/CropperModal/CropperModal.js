@@ -13,7 +13,7 @@ import "./cropper.css"
 import CroppedImagePreviewModal from "./CroppedImageModal/CroppedImagePreviewModal";
 import {getDownloadURL, ref, uploadBytesResumable, uploadString} from "firebase/storage";
 import {firebase_storage, functions} from "../../../firebase";
-import {addImageToStore} from "../../../firebase/database/databaseService";
+import {updateFileDocument} from "../../../firebase/database/databaseService";
 import {httpsCallable} from "firebase/functions";
 
 /**
@@ -115,33 +115,13 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
     //TODO : dont write new one, update existing document instead
     //TODO: anderer Name oder arbeischritte aufteilen
     async function uploadCroppedImage() {
-        //TODO : Why are you like this
-        let blob;
-        await (async () => {
-            blob = await (await fetch(croppedImage.blob_url)).blob()
-        })();
         const storageRef = ref(firebase_storage, `/files/${croppedImage.name}`)
-        //const uploadTask = uploadBytesResumable(storageRef, blob);
-        const uploadTask = uploadString(storageRef, croppedImage.image_base64, 'base64')
+        uploadString(storageRef, croppedImage.image_base64, 'base64')
             .then(snapshot => {
-                console.log("Uploaded form string")
                 getDownloadURL(snapshot.ref).then(url => {
-                    console.log("download url is", url);
-                    addImageToStore(croppedImage, url, true);
+                    updateFileDocument(croppedImage, url, true);
                 })
             })
-        /*uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-            },
-            (err) => console.log(err),
-            () => {
-                getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                    console.log("Uploaded Base64 Image");
-                    addImageToStore(croppedImage, url, true)
-                });
-            }
-        );*/
         setShowModal(false);
         setShowResult(false);
     }

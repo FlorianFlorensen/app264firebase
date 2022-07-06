@@ -26,7 +26,7 @@ function addFileToStore(file, download_url, is_widget_ready) {
  * @param is_widget_ready
  */
 //TODO: these should not be two functions
-function addImageToStore(file, download_url, is_widget_ready) {
+function updateFileDocument(file, download_url, is_widget_ready) {
     const docRef = doc(database, "files", file.uuid)
     updateDoc(docRef, {
         name: file.name,
@@ -41,5 +41,5 @@ function addImageToStore(file, download_url, is_widget_ready) {
 
 export {
     addFileToStore,
-    addImageToStore
+    updateFileDocument
 }

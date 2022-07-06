@@ -10,7 +10,7 @@ import {
 } from "mdb-react-ui-kit";
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {firebase_storage} from "../../../../firebase";
-import {addFileToStore, addImageToStore} from "../../../../firebase/database/databaseService";
+ import {addFileToStore, updateFileDocument} from "../../../../firebase/database/databaseService";
 
 function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedImage}) {
 
