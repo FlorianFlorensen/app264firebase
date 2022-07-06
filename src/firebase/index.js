@@ -30,6 +30,8 @@ const auth = getAuth(app);
 const firebase_storage = getStorage(app);
 const database = getFirestore(app);
 const functions = getFunctions();
+
+//This is for dev_eniroment
 //connectFunctionsEmulator(functions, "localhost", 5001);
 
 
