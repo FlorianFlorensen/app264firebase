@@ -28,7 +28,7 @@ function CroppedImageModal({croppedImage, show, setShow, uploadCroppedImage}) {
                             <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
                         </MDBModalHeader>
                         <MDBModalBody>
-                            <img src={croppedImage.blob_url} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
+                            <img src={`data:image/jpeg;base64,${croppedImage.image_base64}`} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
                         </MDBModalBody>
                         <MDBModalFooter>
                             <MDBBtn color='secondary' onClick={toggleShow}>

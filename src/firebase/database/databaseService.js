@@ -1,4 +1,4 @@
-import {addDoc, collection, doc, updateDoc, where} from "@firebase/firestore";
+import {addDoc, collection, doc, updateDoc} from "@firebase/firestore";
 import {database} from "../index";
 
 /**
@@ -28,7 +28,6 @@ function addFileToStore(file, download_url, is_widget_ready) {
 //TODO: these should not be two functions
 function addImageToStore(file, download_url, is_widget_ready) {
     const docRef = doc(database, "files", file.uuid)
-    console.log(file)
     updateDoc(docRef, {
         name: file.name,
         storage_url: download_url,

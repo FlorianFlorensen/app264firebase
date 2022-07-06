@@ -38,9 +38,6 @@ function Dashboard() {
     const [image, setImage] = useState();
     const [centredModal, setCentredModal] = useState(false);
 
-
-
-
     useEffect(() => {
         retreiveImages();
     }, [])
@@ -50,7 +47,7 @@ function Dashboard() {
             <section className="section">
                 <MDBContainer className="h-100">
                     <MDBInput label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
-                    <input type="file" accept="image/*" multiple onChange={handleChange}/>
+                    <input type="file" accept="image/*" multiple onChange={handleUploadChange}/>
                     <button onClick={handleUpload}>Upload to Firebase</button>
                     {uploading &&
                         <MDBProgress height='20'>
@@ -97,8 +94,8 @@ function Dashboard() {
         let tmp = imagesList.filter(img => img.storage_url === event.target.id).at(0);
         let selectedImage = {
             ...tmp,
-            blob_url: "",
         }
+        console.log("selected image", image);
         setImage(selectedImage)
         setCentredModal(true);
     }
@@ -114,16 +111,16 @@ function Dashboard() {
         setActiveTab(value);
     }
 
-    function handleChange(event) {
+    function handleUploadChange(event) {
         console.log(event.target.files);
         setFilesToUpload(event.target.files);
     }
 
+    //TODO: fix the upload bar
     function handleUpload() {
         if (!filesToUpload) {
             return;
         }
-
         //for Progress Bar
         setPercent(0); //Reset Progress Bar
         let progressFraction = Math.round(100 / filesToUpload.length);
