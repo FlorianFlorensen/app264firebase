@@ -17,8 +17,8 @@ import {updateFileDocument} from "../../../firebase/database/databaseService";
 import {httpsCallable} from "firebase/functions";
 
 /**
- * The tricky thing with the cropper is that you need to initialize when the modal element is actually rendered
- * if you do it before it behaves strangely
+ * The tricky thing with the cropper is that you need to initialize it when the modal element is actually rendered
+ * if you do it before it behaves strangely. Because the cropper recieves its dimensions from the parent container
  */
 function CropperModal({image, showModal, setShowModal, toggleShow}) {
 
@@ -36,6 +36,53 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
             setCropper(null);
         }
     }, [image, cropper]);
+
+    if (!showModal) {
+        return <></>;
+    } else {
+        return (
+            <>
+                <MDBModal tabIndex='-1' show={showModal} setShow={setShowModal} onHide={handleClose}>
+                    <MDBModalDialog size="xl" centered>
+                        <MDBModalContent>
+                            <MDBModalHeader>
+                                <MDBModalTitle>Modal title</MDBModalTitle>
+                                <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
+                            </MDBModalHeader>
+                            <MDBModalBody>
+                                <Cropper
+                                    ref={cropperRef}
+                                    src={croppedImage.storage_url}
+                                    style={{height: 500, width: '100%'}}
+                                    initialAspectRatio={1}
+                                    viewMode={1}
+                                    dragMode="move"
+                                    cropBoxResizable={false}
+                                    cropBoxMovable={true}
+                                    center={true}
+                                    toggleDragModeOnDblclick={false}
+                                    checkOrientation={true}
+                                    onInitialized={instance => setCropper(instance)}
+                                    minCropBoxWidth={200}
+                                    minCropBoxHeight={200}
+                                />
+                            </MDBModalBody>
+                            <MDBModalFooter>
+                                <MDBBtn color='secondary' onClick={toggleShow}>
+                                    Close
+                                </MDBBtn>
+                                <MDBBtn onClick={onCrop}>Crop</MDBBtn>
+                            </MDBModalFooter>
+                        </MDBModalContent>
+                    </MDBModalDialog>
+                </MDBModal>
+                {showResult &&
+                    <CroppedImagePreviewModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}
+                                              uploadCroppedImage={uploadCroppedImage}/>
+                }
+            </>
+        );
+    }
 
     /**
      * Modal
@@ -63,53 +110,6 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                 setShowResult(true)
             });
     }
-
-    if (!showModal) {
-        return <></>;
-    }
-
-    return (
-        <>
-            <MDBModal tabIndex='-1' show={showModal} setShow={setShowModal} onHide={handleClose}>
-                <MDBModalDialog size="xl" centered>
-                    <MDBModalContent>
-                        <MDBModalHeader>
-                            <MDBModalTitle>Modal title</MDBModalTitle>
-                            <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
-                        </MDBModalHeader>
-                        <MDBModalBody>
-                            <Cropper
-                                ref={cropperRef}
-                                src={croppedImage.storage_url}
-                                style={{height: 500, width: '100%'}}
-                                initialAspectRatio={1}
-                                viewMode={1}
-                                dragMode="move"
-                                cropBoxResizable={false}
-                                cropBoxMovable={true}
-                                center={true}
-                                toggleDragModeOnDblclick={false}
-                                checkOrientation={true}
-                                onInitialized={instance => setCropper(instance)}
-                                minCropBoxWidth={200}
-                                minCropBoxHeight={200}
-                            />
-                        </MDBModalBody>
-                        <MDBModalFooter>
-                            <MDBBtn color='secondary' onClick={toggleShow}>
-                                Close
-                            </MDBBtn>
-                            <MDBBtn onClick={onCrop}>Crop</MDBBtn>
-                        </MDBModalFooter>
-                    </MDBModalContent>
-                </MDBModalDialog>
-            </MDBModal>
-            {showResult &&
-                <CroppedImagePreviewModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}
-                                          uploadCroppedImage={uploadCroppedImage}/>
-            }
-        </>
-    );
 
     //TODO : dont write new one, update existing document instead
     //TODO: anderer Name oder arbeischritte aufteilen

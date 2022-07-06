@@ -8,7 +8,7 @@ import {
     signOut,
 } from 'firebase/auth'
 import {getStorage} from "firebase/storage";
-import {getFunctions} from "firebase/functions";
+import {getFunctions, connectFunctionsEmulator} from "firebase/functions";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 // Your web app's Firebase configuration
@@ -32,13 +32,12 @@ const database = getFirestore(app);
 const functions = getFunctions();
 
 //This is for dev_eniroment
-//connectFunctionsEmulator(functions, "localhost", 5001);
+connectFunctionsEmulator(functions, "localhost", 5001);
 
 
 /**
  * Methods
  */
-
 const sendPasswordReset = async (email) => {
     try {
         await sendPasswordResetEmail(auth, email);

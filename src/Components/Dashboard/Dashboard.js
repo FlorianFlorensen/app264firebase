@@ -10,7 +10,6 @@ import {
     MDBTabsLink, MDBTabsPane
 } from "mdb-react-ui-kit";
 import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
-import axios from "axios";
 import ImageGallery from "./ImageGallery/ImageGallery";
 import "./Dashboard.css"
 import "./ImageGallery/Image/ImageContainer.css";
@@ -18,7 +17,7 @@ import {firebase_storage} from "../../firebase";
 import {database} from "../../firebase";
 import {collection, getDocs, query} from "@firebase/firestore";
 import CropperModal from "./CropperModal/CropperModal";
-import {addFileToStore} from "../../firebase/database/databaseService";
+import {addFileToStore, deleteFileDocument} from "../../firebase/database/databaseService";
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
@@ -151,24 +150,10 @@ function Dashboard() {
     }
 
     function handleDeleteButton(event) {
-        console.log(event)
         let id = event.target.value
         event.preventDefault();
-        console.log("Delete this image " + id);
-        axios.delete(`/api/image/${id}`)
-            .then(() => {
-                //in case a previous delete attempt threw error we reset the error banner here
-                setError(false);
-                //remove the deleted image from state to get refresh
-                setImagesList(prevState => prevState.filter(
-                    image => !(image.uuid === event.target.id)));
-
-            }).catch(err => {
-            console.log(err);
-            setError(true);
-            setErrorMessage(
-                "Something unexpected happen when trying to delete Image");
-        })
+        const imageToBeDeleted = imagesList.find(img => img.uuid === id);
+        deleteFileDocument(imageToBeDeleted);
     }
 
     function imageGalleryFilter(event) {
@@ -185,9 +170,9 @@ function Dashboard() {
     }
 
     function retreiveImages() {
-        const allImages = collection(database, "files");
+        const collectionRef = collection(database, "files");
         //TODO : There is no way there is not a way to get all dcuments
-        const q = query(allImages);
+        const q = query(collectionRef);
         getDocs(q)
             .then(snapshot => {
                 let temp = [];

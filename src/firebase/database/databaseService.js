@@ -1,4 +1,4 @@
-import {addDoc, collection, doc, updateDoc} from "@firebase/firestore";
+import {addDoc, collection, doc, updateDoc, deleteDoc} from "@firebase/firestore";
 import {database} from "../index";
 
 /**
@@ -39,7 +39,13 @@ function updateFileDocument(file, download_url, is_widget_ready) {
         .catch(err => console.log(err));
 }
 
+function deleteFileDocument(file) {
+    const docRef = doc(database, "files", file.uuid);
+    deleteDoc(docRef);
+}
+
 export {
     addFileToStore,
-    updateFileDocument
-}
+    updateFileDocument,
+    deleteFileDocument
+};
