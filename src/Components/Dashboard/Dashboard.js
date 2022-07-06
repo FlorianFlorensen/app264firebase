@@ -125,29 +125,28 @@ function Dashboard() {
         for (let i = 0; i < filesToUpload.length; i++) {
             const file = filesToUpload.item(i);
             const storageRef = ref(firebase_storage, `/files/${file.name}`)
-            const uploadTask = uploadBytesResumable(storageRef, file)
-
-            uploadTask.on(
-                "state_changed",
-                (snapshot) => {
-                    setUploading(true);
-                    //const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                    // update progress
-                    //setPercent(percent);
-                },
-                (err) => console.log(err),
-                () => {
-                    totalProgress = totalProgress + progressFraction;
-                    //console.log(totalProgress)
-                    console.log(i)
-                    let percent = i === filesToUpload.length - 1 ? 100 : totalProgress;
-                    setPercent(percent)
-                    // download url
-                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addFileToStore(file, url, false)
-                    });
-                }
-            );
+            uploadBytesResumable(storageRef, file)
+                .on(
+                    "state_changed",
+                    (snapshot) => {
+                        setUploading(true);
+                        //const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                        // update progress
+                        //setPercent(percent);
+                    },
+                    (err) => console.log(err),
+                    () => {
+                        totalProgress = totalProgress + progressFraction;
+                        //console.log(totalProgress)
+                        console.log(i)
+                        let percent = i === filesToUpload.length - 1 ? 100 : totalProgress;
+                        setPercent(percent)
+                        // download url
+                        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                            addFileToStore(file, url, false)
+                        });
+                    }
+                );
         }
     }
 

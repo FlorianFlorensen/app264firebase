@@ -11,7 +11,7 @@ import {
 import Cropper from "react-cropper";
 import "./cropper.css"
 import CroppedImagePreviewModal from "./CroppedImageModal/CroppedImagePreviewModal";
-import {getDownloadURL, ref, uploadBytesResumable, uploadString} from "firebase/storage";
+import {getDownloadURL, ref, uploadString} from "firebase/storage";
 import {firebase_storage, functions} from "../../../firebase";
 import {updateFileDocument} from "../../../firebase/database/databaseService";
 import {httpsCallable} from "firebase/functions";
@@ -49,9 +49,8 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
         const cropper = imageElement.cropper;
 
         const cropp_data = cropper.getData(true);
-        const addMessage = httpsCallable(functions, 'crop_preview');
-
-        addMessage({
+        const crop_preview = httpsCallable(functions, 'crop_preview');
+        crop_preview({
             filename: image.name,
             cropp_data,
         })
