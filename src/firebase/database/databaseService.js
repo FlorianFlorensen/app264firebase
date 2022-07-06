@@ -6,6 +6,7 @@ import {database} from "../index";
  * @param file / browser file like new File()
  * @param download_url the Download Url retrieved from firebase Storage
  */
+//TODO : this should be an async function
 function addFileToStore(file, download_url, is_widget_ready) {
     const collectionRef = collection(database, "files");
     addDoc(collectionRef, {
@@ -25,10 +26,9 @@ function addFileToStore(file, download_url, is_widget_ready) {
  * @param download_url
  * @param is_widget_ready
  */
-//TODO: these should not be two functions
-function updateFileDocument(file, download_url, is_widget_ready) {
+async function updateFileDocument(file, download_url, is_widget_ready) {
     const docRef = doc(database, "files", file.uuid)
-    updateDoc(docRef, {
+    await updateDoc(docRef, {
         name: file.name,
         storage_url: download_url,
         is_widget_ready: is_widget_ready,
@@ -38,7 +38,7 @@ function updateFileDocument(file, download_url, is_widget_ready) {
         .then(res => console.log(res))
         .catch(err => console.log(err));
 }
-
+//TODO : this should be an async function
 function deleteFileDocument(file) {
     const docRef = doc(database, "files", file.uuid);
     deleteDoc(docRef);

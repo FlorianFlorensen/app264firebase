@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
     MDBContainer,
     MDBInput,
@@ -7,7 +7,7 @@ import {
     MDBTabs,
     MDBTabsContent,
     MDBTabsItem,
-    MDBTabsLink, MDBTabsPane
+    MDBTabsLink, MDBTabsPane, MDBToast
 } from "mdb-react-ui-kit";
 import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
 import ImageGallery from "./ImageGallery/ImageGallery";
@@ -35,11 +35,17 @@ function Dashboard() {
     //Image that is shown inside Cropper
     const [image, setImage] = useState();
     const [centredModal, setCentredModal] = useState(false);
+    const triggerToastSavedRef = useRef(null);
 
     //TODO: This is stupid, i need a way to refresh my imagelist on edit, delete, add.
     useEffect(() => {
         retreiveImages();
     }, [activeTab])
+
+    //TODO: THIS IS STUPID.......but it works....i think
+    function refresh() {
+
+    }
 
     return (
         <div id="dashboard">
@@ -51,7 +57,7 @@ function Dashboard() {
                     {uploading &&
                         <MDBProgress height='20'>
                             <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
-                                {percent}%
+                                {percent} %
                             </MDBProgressBar>
                         </MDBProgress>
                     }
@@ -83,11 +89,32 @@ function Dashboard() {
             <section>
                 {image &&
                     <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleShow}
-                                  image={image}></CropperModal>
+                                  image={image} triggerToastSaved={triggerToastSaved}></CropperModal>
                 }
+            </section>
+            <section>
+                <input hidden={true} ref={triggerToastSavedRef}/>
+                <MDBToast
+                    color='success'
+                    autohide
+                    position='top-right'
+                    delay={2000}
+                    appendToBody
+                    triggerRef={triggerToastSavedRef}
+                    headerContent={
+                        <>
+                            <strong className='me-auto'>Success</strong>
+                        </>
+                    }
+                    bodyContent='Image was saved successfully'
+                />
             </section>
         </div>
     );
+
+    function triggerToastSaved() {
+        triggerToastSavedRef.current.click();
+    }
 
     function handleEditButton(event) {
         let selectedImage = imagesList.filter(img => img.storage_url === event.target.id).at(0);
@@ -134,7 +161,7 @@ function Dashboard() {
                 },
                 (err) => console.log(err),
                 () => {
-                    console.log(filesLeft )
+                    console.log(filesLeft)
                     totalProgress += progressFraction
                     setPercent(filesLeft > 0 ? totalProgress : 100)
                     filesLeft--;
@@ -144,6 +171,7 @@ function Dashboard() {
                 }
             );
         }
+        refresh();
     }
 
     function handleDeleteButton(event) {
@@ -151,6 +179,7 @@ function Dashboard() {
         event.preventDefault();
         const imageToBeDeleted = imagesList.find(img => img.uuid === id);
         deleteFileDocument(imageToBeDeleted);
+        refresh();
     }
 
     function imageGalleryFilter(event) {

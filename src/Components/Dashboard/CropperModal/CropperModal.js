@@ -6,7 +6,7 @@ import {
     MDBModalContent,
     MDBModalDialog, MDBModalFooter,
     MDBModalHeader,
-    MDBModalTitle
+    MDBModalTitle, MDBSpinner
 } from "mdb-react-ui-kit";
 import Cropper from "react-cropper";
 import "./cropper.css"
@@ -20,12 +20,14 @@ import {httpsCallable} from "firebase/functions";
  * The tricky thing with the cropper is that you need to initialize it when the modal element is actually rendered
  * if you do it before it behaves strangely. Because the cropper recieves its dimensions from the parent container
  */
-function CropperModal({image, showModal, setShowModal, toggleShow}) {
+function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastSaved}) {
 
     const [cropper, setCropper] = useState();
     const cropperRef = useRef();
     const [showResult, setShowResult] = useState(false);
     const [croppedImage, setCroppedImage] = useState(image);
+    //to show that the image is currently being worked on in the backend
+    const [proccessing, setProccessing] = useState(false);
 
     useEffect(() => {
         if (image != null) {
@@ -71,7 +73,16 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                                 <MDBBtn color='secondary' onClick={toggleShow}>
                                     Close
                                 </MDBBtn>
-                                <MDBBtn onClick={onCrop}>Crop</MDBBtn>
+                                {proccessing ?
+                                    <MDBBtn disabled>
+                                        <MDBSpinner size='sm' role='status' tag='span' className='me-2'/>
+                                        Loading...
+                                    </MDBBtn>
+                                    :
+                                    <MDBBtn onClick={onCrop}>
+                                        Crop
+                                    </MDBBtn>
+                                }
                             </MDBModalFooter>
                         </MDBModalContent>
                     </MDBModalDialog>
@@ -92,6 +103,7 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
     }
 
     function onCrop() {
+        setProccessing(true);
         const imageElement = cropperRef.current;
         const cropper = imageElement.cropper;
 
@@ -108,6 +120,7 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                     image_base64: result.data.proccessed_image_base64,
                 })
                 setShowResult(true)
+                setProccessing(false)
             });
     }
 
@@ -117,8 +130,9 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
         const storageRef = ref(firebase_storage, `/files/${croppedImage.name}`)
         uploadString(storageRef, croppedImage.image_base64, 'base64')
             .then(snapshot => {
-                getDownloadURL(snapshot.ref).then(url => {
-                    updateFileDocument(croppedImage, url, true);
+                getDownloadURL(snapshot.ref).then(async url => {
+                   await updateFileDocument(croppedImage, url, true);
+                   triggerToastSaved();
                 })
             })
         setShowModal(false);
