@@ -12,9 +12,13 @@ import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {firebase_storage} from "../../../../firebase";
 import {addFileToStore, addImageToStore} from "../../../../firebase/database/databaseService";
 
-function CroppedImageModal({croppedImage, show, setShow, uploadCroppedImage}) {
+function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedImage}) {
 
     const toggleShow = () => setShow(!show);
+
+    useEffect(() => {
+        console.log("this is the image in the prview", croppedImage);
+    }, [croppedImage])
 
     return (
         <>
@@ -43,4 +47,4 @@ function CroppedImageModal({croppedImage, show, setShow, uploadCroppedImage}) {
     );
 }
 
-export default CroppedImageModal;
+export default CroppedImagePreviewModal;

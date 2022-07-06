@@ -10,8 +10,8 @@ import {
 } from "mdb-react-ui-kit";
 import Cropper from "react-cropper";
 import "./cropper.css"
-import CroppedImageModal from "./CroppedImageModal/CroppedImageModal";
-import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
+import CroppedImagePreviewModal from "./CroppedImageModal/CroppedImagePreviewModal";
+import {getDownloadURL, ref, uploadBytesResumable, uploadString} from "firebase/storage";
 import {firebase_storage, functions} from "../../../firebase";
 import {addImageToStore} from "../../../firebase/database/databaseService";
 import {httpsCallable} from "firebase/functions";
@@ -106,8 +106,8 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
                 </MDBModalDialog>
             </MDBModal>
             {showResult &&
-                <CroppedImageModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}
-                                   uploadCroppedImage={uploadCroppedImage}/>
+                <CroppedImagePreviewModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}
+                                          uploadCroppedImage={uploadCroppedImage}/>
             }
         </>
     );
@@ -121,19 +121,27 @@ function CropperModal({image, showModal, setShowModal, toggleShow}) {
             blob = await (await fetch(croppedImage.blob_url)).blob()
         })();
         const storageRef = ref(firebase_storage, `/files/${croppedImage.name}`)
-        const uploadTask = uploadBytesResumable(storageRef, blob);
-
-        uploadTask.on(
+        //const uploadTask = uploadBytesResumable(storageRef, blob);
+        const uploadTask = uploadString(storageRef, croppedImage.image_base64, 'base64')
+            .then(snapshot => {
+                console.log("Uploaded form string")
+                getDownloadURL(snapshot.ref).then(url => {
+                    console.log("download url is", url);
+                    addImageToStore(croppedImage, url, true);
+                })
+            })
+        /*uploadTask.on(
             "state_changed",
             (snapshot) => {
             },
             (err) => console.log(err),
             () => {
                 getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    console.log("Uploaded Base64 Image");
                     addImageToStore(croppedImage, url, true)
                 });
             }
-        );
+        );*/
         setShowModal(false);
         setShowResult(false);
     }

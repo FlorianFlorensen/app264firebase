@@ -16,10 +16,9 @@ import "./Dashboard.css"
 import "./ImageGallery/Image/ImageContainer.css";
 import {firebase_storage} from "../../firebase";
 import {database} from "../../firebase";
-import {collection, getDocs, query, where} from "@firebase/firestore";
+import {collection, getDocs, query} from "@firebase/firestore";
 import CropperModal from "./CropperModal/CropperModal";
 import {addFileToStore} from "../../firebase/database/databaseService";
-import {getFunctions, httpsCallable} from "firebase/functions";
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
@@ -126,7 +125,7 @@ function Dashboard() {
         for (let i = 0; i < filesToUpload.length; i++) {
             const file = filesToUpload.item(i);
             const storageRef = ref(firebase_storage, `/files/${file.name}`)
-            const uploadTask = uploadBytesResumable(storageRef, file);
+            const uploadTask = uploadBytesResumable(storageRef, file)
 
             uploadTask.on(
                 "state_changed",
