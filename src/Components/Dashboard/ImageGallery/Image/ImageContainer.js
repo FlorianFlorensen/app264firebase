@@ -26,7 +26,7 @@ export default function ImageContainer({imageObject, handleDeleteButton, handleE
             </div>
             <MDBBtn className="mt-2" color="danger" value={image.uuid} onClick={handleDeleteButton}>Delete</MDBBtn>
             <div>
-                <p className="mt-2">{image.name}</p>
+                <p className="mt-2" style={{fontSize : "13px"}}>{image.name}</p>
             </div>
         </MDBCol>
     );

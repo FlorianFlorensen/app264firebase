@@ -24,8 +24,6 @@ function Dashboard() {
     const [galleryFilterList, setGalleryFilterList] = useState([])
     //all Images from Database / Storage
     const [allImages, setAllImages] = useState([])
-    const [error, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
     const [percent, setPercent] = useState(0);
@@ -42,18 +40,13 @@ function Dashboard() {
         retreiveImages();
     }, [activeTab])
 
-    //TODO: THIS IS STUPID.......but it works....i think
-    function refresh() {
-
-    }
-
     return (
         <div id="dashboard">
             <section className="section">
                 <MDBContainer className="h-100">
                     <MDBInput label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
-                    <input type="file" accept="image/*" multiple onChange={handleUploadChange}/>
-                    <button onClick={handleUpload}>Upload to Firebase</button>
+                    <input type="file" accept="image/*" multiple onChange={handleFileUploadChange}/>
+                    <button onClick={handleFileUpload}>Upload to Firebase</button>
                     {uploading &&
                         <MDBProgress height='20'>
                             <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
@@ -78,7 +71,6 @@ function Dashboard() {
                                           handleEditButton={handleEditButton}/>
                         </MDBTabsPane>
                         <MDBTabsPane show={activeTab === 'tab2'}>
-
                             <ImageGallery imageList={imagesList.filter((img) => img.is_widget_ready)}
                                           handleDeleteImage={handleDeleteButton}
                                           handleEditButton={handleEditButton}/>
@@ -87,9 +79,9 @@ function Dashboard() {
                 </MDBContainer>
             </section>
             <section>
-                {image &&
-                    <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleShow}
-                                  image={image} triggerToastSaved={triggerToastSaved}></CropperModal>
+                {image !== null ?
+                    <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleModalShow}
+                                  image={image} setImage={setImage} triggerToastSaved={triggerToastSaved}></CropperModal> : null
                 }
             </section>
             <section>
@@ -123,7 +115,7 @@ function Dashboard() {
         setCentredModal(true);
     }
 
-    function toggleShow() {
+    function toggleModalShow() {
         setCentredModal(!centredModal);
     }
 
@@ -134,13 +126,13 @@ function Dashboard() {
         setActiveTab(value);
     }
 
-    function handleUploadChange(event) {
+    function handleFileUploadChange(event) {
         console.log(event.target.files);
         setFilesToUpload(event.target.files);
     }
 
     //TODO: fix the upload bar
-    function handleUpload() {
+    function handleFileUpload() {
         if (!filesToUpload) {
             return;
         }
@@ -171,7 +163,6 @@ function Dashboard() {
                 }
             );
         }
-        refresh();
     }
 
     function handleDeleteButton(event) {
@@ -179,7 +170,7 @@ function Dashboard() {
         event.preventDefault();
         const imageToBeDeleted = imagesList.find(img => img.uuid === id);
         deleteFileDocument(imageToBeDeleted);
-        refresh();
+        setImagesList(imagesList.filter(img => img.uuid !== id))
     }
 
     function imageGalleryFilter(event) {
@@ -197,7 +188,7 @@ function Dashboard() {
 
     function retreiveImages() {
         const collectionRef = collection(database, "files");
-        //TODO : There is no way there is not a way to get all dcuments
+        //TODO : There is no way there is not a way to get all documents
         const q = query(collectionRef);
         getDocs(q)
             .then(snapshot => {

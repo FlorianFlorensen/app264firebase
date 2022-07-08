@@ -20,27 +20,25 @@ import {httpsCallable} from "firebase/functions";
  * The tricky thing with the cropper is that you need to initialize it when the modal element is actually rendered
  * if you do it before it behaves strangely. Because the cropper recieves its dimensions from the parent container
  */
-function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastSaved}) {
+function CropperModal({image, setImage, showModal, setShowModal, toggleShow, triggerToastSaved}) {
 
     const [cropper, setCropper] = useState();
     const cropperRef = useRef();
-    const [showResult, setShowResult] = useState(false);
-    const [croppedImage, setCroppedImage] = useState(image);
+    const [showPreview, setShowPreview] = useState(false);
     //to show that the image is currently being worked on in the backend
     const [proccessing, setProccessing] = useState(false);
+    const [base64_cropped_image, setBase64_cropped_image] = useState("")
 
     useEffect(() => {
         if (image != null) {
             //cropper && cropper.zoomTo(0).rotateTo(0)
-            setCroppedImage(image);
-            return;
         } else {
             setCropper(null);
         }
     }, [image, cropper]);
 
     if (!showModal) {
-        return <></>;
+        return null;
     } else {
         return (
             <>
@@ -54,7 +52,7 @@ function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastS
                             <MDBModalBody>
                                 <Cropper
                                     ref={cropperRef}
-                                    src={croppedImage.storage_url}
+                                    src={image.storage_url}
                                     style={{height: 500, width: '100%'}}
                                     initialAspectRatio={1}
                                     viewMode={1}
@@ -79,7 +77,17 @@ function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastS
                                         Loading...
                                     </MDBBtn>
                                     :
-                                    <MDBBtn onClick={onCrop}>
+                                    <MDBBtn onClick={handlePreview}>
+                                        Preview
+                                    </MDBBtn>
+                                }
+                                {proccessing ?
+                                    <MDBBtn disabled>
+                                        <MDBSpinner size='sm' role='status' tag='span' className='me-2'/>
+                                        Loading...
+                                    </MDBBtn>
+                                    :
+                                    <MDBBtn onClick={handleOnCrop}>
                                         Crop
                                     </MDBBtn>
                                 }
@@ -87,8 +95,8 @@ function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastS
                         </MDBModalContent>
                     </MDBModalDialog>
                 </MDBModal>
-                {showResult &&
-                    <CroppedImagePreviewModal show={showResult} setShow={setShowResult} croppedImage={croppedImage}
+                {showPreview &&
+                    <CroppedImagePreviewModal show={showPreview} setShow={setShowPreview} croppedImage={image} base64CroppedImage={base64_cropped_image}
                                               uploadCroppedImage={uploadCroppedImage}/>
                 }
             </>
@@ -102,41 +110,46 @@ function CropperModal({image, showModal, setShowModal, toggleShow, triggerToastS
         setCropper(false);
     }
 
-    function onCrop() {
+    async function handlePreview() {
         setProccessing(true);
-        const imageElement = cropperRef.current;
-        const cropper = imageElement.cropper;
+        await cropImage();
+        setProccessing(false);
+        setShowPreview(true)
+    }
 
-        const cropp_data = cropper.getData(true);
+    async function handleOnCrop() {
+        setProccessing(true);
+        await cropImage();
+        setProccessing(false);
+        uploadCroppedImage();
+    }
+
+    async function cropImage() {
+        const cropp_data = cropperRef.current.cropper.getData(true);
         const crop_preview = httpsCallable(functions, 'crop_preview');
-        crop_preview({
+        const result = await crop_preview({
             filename: image.name,
             cropp_data,
-        })
-            .then((result) => {
-                console.log(result);
-                setCroppedImage({
-                    ...croppedImage,
-                    image_base64: result.data.proccessed_image_base64,
-                })
-                setShowResult(true)
-                setProccessing(false)
-            });
+        });
+        setBase64_cropped_image(result.data.proccessed_image_base64);
     }
 
     //TODO : dont write new one, update existing document instead
     //TODO: anderer Name oder arbeischritte aufteilen
-    async function uploadCroppedImage() {
-        const storageRef = ref(firebase_storage, `/files/${croppedImage.name}`)
-        uploadString(storageRef, croppedImage.image_base64, 'base64')
+    function uploadCroppedImage() {
+        const storageRef = ref(firebase_storage, `/files/${image.name}`)
+        console.log("hi", image);
+        uploadString(storageRef,base64_cropped_image, 'base64')
             .then(snapshot => {
                 getDownloadURL(snapshot.ref).then(async url => {
-                   await updateFileDocument(croppedImage, url, true);
-                   triggerToastSaved();
+                    await updateFileDocument(image, url, true);
+                    triggerToastSaved();
                 })
             })
+        //TODO: Das hat hier drinnnen eigentlich nichts verloren´
+        setImage(null);
         setShowModal(false);
-        setShowResult(false);
+        setShowPreview(false);
     }
 }
 

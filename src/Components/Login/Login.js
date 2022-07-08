@@ -8,9 +8,8 @@ import {useAuthState} from "react-firebase-hooks/auth";
 import {auth} from "../../firebase";
 import {signInWithEmailAndPassword} from "firebase/auth";
 
-function Login({setToken, setTokenToStorage}) {
+function Login() {
     const [error, loading, user] = useAuthState(auth);
-
     const [username, setUsername] = useState();
     const [password, setPassword] = useState();
 
@@ -18,6 +17,10 @@ function Login({setToken, setTokenToStorage}) {
     //TODO blabla promise unhandled
     function login() {
         signInWithEmailAndPassword(auth, username, password)
+    }
+
+    function handlePasswordReset() {
+        //TODO: implement
     }
 
     useEffect(() => {
@@ -61,7 +64,15 @@ function Login({setToken, setTokenToStorage}) {
                                                     <MDBBtn
                                                         onClick={login}
                                                         type="submit" className="mx-2"
-                                                        color="dark">Login</MDBBtn>
+                                                        color="dark">
+                                                        Login
+                                                    </MDBBtn>
+                                                    <MDBBtn
+                                                        onClick={handlePasswordReset}
+                                                        className="mx-2"
+                                                        color="dark">
+                                                        Forgott Password
+                                                    </MDBBtn>
                                                 </div>
                                                 {error &&
                                                     <MDBAlert show className='w-100 p-2 mt-3' color='danger'>
@@ -74,7 +85,7 @@ function Login({setToken, setTokenToStorage}) {
                                         <div>
                                             <img className='childrenImage' src={childrenImage} alt=''/>
                                         </div>
-                                    </div>
+                                    </div>e
                                 </MDBRow>
                             </MDBCard>
                         </div>

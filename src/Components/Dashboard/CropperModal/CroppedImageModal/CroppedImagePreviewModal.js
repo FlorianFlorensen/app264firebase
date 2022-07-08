@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {
     MDBBtn,
     MDBModal,
@@ -8,11 +8,8 @@ import {
     MDBModalHeader,
     MDBModalTitle
 } from "mdb-react-ui-kit";
-import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
-import {firebase_storage} from "../../../../firebase";
- import {addFileToStore, updateFileDocument} from "../../../../firebase/database/databaseService";
 
-function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedImage}) {
+function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedImage, base64CroppedImage}) {
 
     const toggleShow = () => setShow(!show);
 
@@ -32,7 +29,7 @@ function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedIma
                             <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
                         </MDBModalHeader>
                         <MDBModalBody>
-                            <img src={`data:image/jpeg;base64,${croppedImage.image_base64}`} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
+                            <img src={`data:image/jpeg;base64,${base64CroppedImage}`} alt="Cropped preview" style={{width : 'auto', height : 'auto'}}/>
                         </MDBModalBody>
                         <MDBModalFooter>
                             <MDBBtn color='secondary' onClick={toggleShow}>
