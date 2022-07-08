@@ -44,17 +44,19 @@ function Dashboard() {
         <div id="dashboard">
             <section className="section">
                 <MDBContainer className="h-100">
-                    <MDBInput label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
-                    <input type="file" accept="image/*" multiple onChange={handleFileUploadChange}/>
-                    <button onClick={handleFileUpload}>Upload to Firebase</button>
-                    {uploading &&
-                        <MDBProgress height='20'>
-                            <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
-                                {percent} %
-                            </MDBProgressBar>
-                        </MDBProgress>
-                    }
-                    <MDBTabs justify>
+                    <MDBInput className="mt-4" label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
+                    <div className="mt-4">
+                        <input type="file" accept="image/*" multiple onChange={handleFileUploadChange}/>
+                        <button onClick={handleFileUpload}>Upload to Firebase</button>
+                        {uploading &&
+                            <MDBProgress className="mt-2" height='20'>
+                                <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
+                                    {percent} %
+                                </MDBProgressBar>
+                            </MDBProgress>
+                        }
+                    </div>
+                    <MDBTabs justify className="mt-3 mb-3">
                         <MDBTabsItem>
                             <MDBTabsLink onClick={() => handleTabClick('tab1')} active={activeTab === 'tab1'}>
                                 Needs Croping</MDBTabsLink>
@@ -81,7 +83,8 @@ function Dashboard() {
             <section>
                 {image !== null ?
                     <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleModalShow}
-                                  image={image} setImage={setImage} triggerToastSaved={triggerToastSaved}></CropperModal> : null
+                                  image={image} setImage={setImage}
+                                  triggerToastSaved={triggerToastSaved}></CropperModal> : null
                 }
             </section>
             <section>
@@ -110,7 +113,6 @@ function Dashboard() {
 
     function handleEditButton(event) {
         let selectedImage = imagesList.filter(img => img.storage_url === event.target.id).at(0);
-        console.log("selected image", selectedImage);
         setImage(selectedImage)
         setCentredModal(true);
     }
@@ -127,12 +129,12 @@ function Dashboard() {
     }
 
     function handleFileUploadChange(event) {
-        console.log(event.target.files);
         setFilesToUpload(event.target.files);
     }
 
     //TODO: fix the upload bar
     function handleFileUpload() {
+        setUploading(true);
         if (!filesToUpload) {
             return;
         }
@@ -148,12 +150,9 @@ function Dashboard() {
             const uploadTask = uploadBytesResumable(storageRef, file)
             uploadTask.on(
                 "state_changed",
-                (snapshot) => {
-                    setUploading(true);
-                },
+                (snapshot) => {},
                 (err) => console.log(err),
                 () => {
-                    console.log(filesLeft)
                     totalProgress += progressFraction
                     setPercent(filesLeft > 0 ? totalProgress : 100)
                     filesLeft--;
