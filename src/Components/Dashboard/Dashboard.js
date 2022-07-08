@@ -7,23 +7,28 @@ import {
     MDBTabs,
     MDBTabsContent,
     MDBTabsItem,
-    MDBTabsLink, MDBTabsPane, MDBToast
-} from "mdb-react-ui-kit";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"
-import ImageGallery from "./ImageGallery/ImageGallery";
-import "./Dashboard.css"
-import "./ImageGallery/Image/ImageContainer.css";
-import {firebase_storage} from "../../firebase";
-import {database} from "../../firebase";
-import {collection, getDocs, query} from "@firebase/firestore";
-import CropperModal from "./CropperModal/CropperModal";
-import {addFileToStore, deleteFileDocument} from "../../firebase/database/databaseService";
+    MDBTabsLink,
+    MDBTabsPane,
+    MDBToast,
+} from 'mdb-react-ui-kit';
+import {ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage';
+import ImageGallery from './ImageGallery/ImageGallery';
+import './Dashboard.css';
+import './ImageGallery/Image/ImageContainer.css';
+import {firebase_storage} from '../../firebase';
+import {database} from '../../firebase';
+import {collection, getDocs, query} from '@firebase/firestore';
+import CropperModal from './CropperModal/CropperModal';
+import {
+    addFileToStore,
+    deleteFileDocument,
+} from '../../firebase/database/databaseService';
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
-    const [galleryFilterList, setGalleryFilterList] = useState([])
+    const [galleryFilterList, setGalleryFilterList] = useState([]);
     //all Images from Database / Storage
-    const [allImages, setAllImages] = useState([])
+    const [allImages, setAllImages] = useState([]);
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
     const [percent, setPercent] = useState(0);
@@ -37,71 +42,99 @@ function Dashboard() {
 
     //TODO: This is stupid, i need a way to refresh my imagelist on edit, delete, add.
     useEffect(() => {
-        retreiveImages();
-    }, [activeTab])
+        retrieveImages();
+    }, [activeTab]);
 
     return (
         <div id="dashboard">
             <section className="section">
                 <MDBContainer className="h-100">
-                    <MDBInput className="mt-4" label='Search' id='form1' type='text' onChange={imageGalleryFilter}/>
+                    <MDBInput
+                        className="mt-4"
+                        label="Search"
+                        id="form1"
+                        type="text"
+                        onChange={imageGalleryFilter}
+                    />
                     <div className="mt-4">
-                        <input type="file" accept="image/*" multiple onChange={handleFileUploadChange}/>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFileUploadChange}
+                        />
                         <button onClick={handleFileUpload}>Upload to Firebase</button>
-                        {uploading &&
-                            <MDBProgress className="mt-2" height='20'>
+                        {uploading && (
+                            <MDBProgress className="mt-2" height="20">
                                 <MDBProgressBar width={percent} valuemin={0} valuemax={100}>
                                     {percent} %
                                 </MDBProgressBar>
                             </MDBProgress>
-                        }
+                        )}
                     </div>
                     <MDBTabs justify className="mt-3 mb-3">
                         <MDBTabsItem>
-                            <MDBTabsLink onClick={() => handleTabClick('tab1')} active={activeTab === 'tab1'}>
-                                Needs Croping</MDBTabsLink>
+                            <MDBTabsLink
+                                onClick={() => handleTabClick('tab1')}
+                                active={activeTab === 'tab1'}
+                            >
+                                Needs Croping
+                            </MDBTabsLink>
                         </MDBTabsItem>
                         <MDBTabsItem>
-                            <MDBTabsLink onClick={() => handleTabClick('tab2')} active={activeTab === 'tab2'}>Ready for
-                                Widget</MDBTabsLink>
+                            <MDBTabsLink
+                                onClick={() => handleTabClick('tab2')}
+                                active={activeTab === 'tab2'}
+                            >
+                                Ready for Widget
+                            </MDBTabsLink>
                         </MDBTabsItem>
                     </MDBTabs>
                     <MDBTabsContent>
                         <MDBTabsPane show={activeTab === 'tab1'}>
-                            <ImageGallery imageList={imagesList.filter((img) => !img.is_widget_ready)}
-                                          handleDeleteImage={handleDeleteButton}
-                                          handleEditButton={handleEditButton}/>
+                            <ImageGallery
+                                imageList={imagesList.filter((img) => !img.is_widget_ready)}
+                                handleDeleteImage={handleDeleteButton}
+                                handleEditButton={handleEditButton}
+                            />
                         </MDBTabsPane>
                         <MDBTabsPane show={activeTab === 'tab2'}>
-                            <ImageGallery imageList={imagesList.filter((img) => img.is_widget_ready)}
-                                          handleDeleteImage={handleDeleteButton}
-                                          handleEditButton={handleEditButton}/>
+                            <ImageGallery
+                                imageList={imagesList.filter((img) => img.is_widget_ready)}
+                                handleDeleteImage={handleDeleteButton}
+                                handleEditButton={handleEditButton}
+                            />
                         </MDBTabsPane>
                     </MDBTabsContent>
                 </MDBContainer>
             </section>
             <section>
-                {image !== null ?
-                    <CropperModal showModal={centredModal} setShowModal={setCentredModal} toggleShow={toggleModalShow}
-                                  image={image} setImage={setImage}
-                                  triggerToastSaved={triggerToastSaved}></CropperModal> : null
-                }
+                {image !== null ? (
+                    <CropperModal
+                        showModal={centredModal}
+                        setShowModal={setCentredModal}
+                        toggleShow={toggleModalShow}
+                        image={image}
+                        setImage={setImage}
+                        triggerToastSaved={triggerToastSaved}
+                    ></CropperModal>
+                ) : null}
             </section>
             <section>
                 <input hidden={true} ref={triggerToastSavedRef}/>
                 <MDBToast
-                    color='success'
+                    color="success"
                     autohide
-                    position='top-right'
+                    position="top-right"
                     delay={2000}
                     appendToBody
                     triggerRef={triggerToastSavedRef}
                     headerContent={
                         <>
-                            <strong className='me-auto'>Success</strong>
+                            <strong className="me-auto">Success</strong>
                         </>
                     }
-                    bodyContent='Image was saved successfully'
+                    bodyContent="Image was saved successfully"
                 />
             </section>
         </div>
@@ -112,8 +145,10 @@ function Dashboard() {
     }
 
     function handleEditButton(event) {
-        let selectedImage = imagesList.filter(img => img.storage_url === event.target.id).at(0);
-        setImage(selectedImage)
+        let selectedImage = imagesList
+            .filter((img) => img.storage_url === event.target.id)
+            .at(0);
+        setImage(selectedImage);
         setCentredModal(true);
     }
 
@@ -146,62 +181,70 @@ function Dashboard() {
 
         for (let i = 0; i < filesToUpload.length; i++) {
             const file = filesToUpload.item(i);
-            const storageRef = ref(firebase_storage, `/files/${file.name}`)
-            const uploadTask = uploadBytesResumable(storageRef, file)
+            const storageRef = ref(firebase_storage, `/files/${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
             uploadTask.on(
-                "state_changed",
-                (snapshot) => {},
+                'state_changed',
+                (snapshot) => {
+                },
                 (err) => console.log(err),
+                // eslint-disable-next-line no-loop-func
                 () => {
-                    totalProgress += progressFraction
-                    setPercent(filesLeft > 0 ? totalProgress : 100)
+                    totalProgress += progressFraction;
+                    setPercent(filesLeft > 0 ? totalProgress : 100);
                     filesLeft--;
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addFileToStore(file, url, false)
+                        addFileToStore(file, url, false);
                     });
                 }
             );
+            if (filesLeft <= 1) {
+                setUploading(false);
+            }
         }
+
     }
 
     function handleDeleteButton(event) {
-        let id = event.target.value
+        let id = event.target.value;
         event.preventDefault();
-        const imageToBeDeleted = imagesList.find(img => img.uuid === id);
+        const imageToBeDeleted = imagesList.find((img) => img.uuid === id);
         deleteFileDocument(imageToBeDeleted);
-        setImagesList(imagesList.filter(img => img.uuid !== id))
+        setImagesList(imagesList.filter((img) => img.uuid !== id));
     }
 
     function imageGalleryFilter(event) {
         (async () => {
-            let filterResult = allImages
-                .filter((image) => {
-                    return image.original_filename.toUpperCase().includes(
-                            event.target.value.toUpperCase().trim())
-                        && event.target.value !== "";
-                });
-            console.log(filterResult)
+            let filterResult = allImages.filter((image) => {
+                return (
+                    image.original_filename
+                        .toUpperCase()
+                        .includes(event.target.value.toUpperCase().trim()) &&
+                    event.target.value !== ''
+                );
+            });
+            console.log(filterResult);
             setGalleryFilterList(filterResult);
         })();
     }
 
-    function retreiveImages() {
-        const collectionRef = collection(database, "files");
+    function retrieveImages() {
+        const collectionRef = collection(database, 'files');
         //TODO : There is no way there is not a way to get all documents
         const q = query(collectionRef);
         getDocs(q)
-            .then(snapshot => {
+            .then((snapshot) => {
                 let temp = [];
                 snapshot.forEach((doc) => {
                     temp.push({
                         uuid: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     });
-                })
+                });
                 console.log(temp);
                 setImagesList(temp);
             })
-            .catch(error => console.log(error));
+            .catch((error) => console.log(error));
     }
 }
 

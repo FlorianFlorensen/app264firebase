@@ -25,7 +25,7 @@ function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedIma
                 <MDBModalDialog centered>
                     <MDBModalContent>
                         <MDBModalHeader>
-                            <MDBModalTitle>Modal title</MDBModalTitle>
+                            <MDBModalTitle>Preview</MDBModalTitle>
                             <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
                         </MDBModalHeader>
                         <MDBModalBody>
@@ -35,13 +35,17 @@ function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedIma
                             <MDBBtn color='secondary' onClick={toggleShow}>
                                 Close
                             </MDBBtn>
-                            <MDBBtn onClick={uploadCroppedImage}>Save changes</MDBBtn>
+                            <MDBBtn onClick={onSaveHandler}>Save changes</MDBBtn>
                         </MDBModalFooter>
                     </MDBModalContent>
                 </MDBModalDialog>
             </MDBModal>
         </>
     );
+
+    function onSaveHandler(){
+        uploadCroppedImage(base64CroppedImage);
+    }
 }
 
 export default CroppedImagePreviewModal;

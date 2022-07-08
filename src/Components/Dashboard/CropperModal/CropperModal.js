@@ -27,7 +27,7 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
     const [showPreview, setShowPreview] = useState(false);
     //to show that the image is currently being worked on in the backend
     const [proccessing, setProccessing] = useState(false);
-    const [base64_cropped_image, setBase64_cropped_image] = useState("")
+    const [base64_cropped_preview, setBase64_cropped_preview] = useState("")
 
     useEffect(() => {
         if (image != null) {
@@ -46,7 +46,7 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
                     <MDBModalDialog size="xl" centered>
                         <MDBModalContent>
                             <MDBModalHeader>
-                                <MDBModalTitle>Modal title</MDBModalTitle>
+                                <MDBModalTitle>Edit</MDBModalTitle>
                                 <MDBBtn className='btn-close' color='none' onClick={toggleShow}></MDBBtn>
                             </MDBModalHeader>
                             <MDBModalBody>
@@ -68,9 +68,6 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
                                 />
                             </MDBModalBody>
                             <MDBModalFooter>
-                                <MDBBtn color='secondary' onClick={toggleShow}>
-                                    Close
-                                </MDBBtn>
                                 {proccessing ?
                                     <MDBBtn disabled>
                                         <MDBSpinner size='sm' role='status' tag='span' className='me-2'/>
@@ -95,9 +92,11 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
                         </MDBModalContent>
                     </MDBModalDialog>
                 </MDBModal>
-                {showPreview &&
-                    <CroppedImagePreviewModal show={showPreview} setShow={setShowPreview} croppedImage={image} base64CroppedImage={base64_cropped_image}
+                {showPreview ?
+                    <CroppedImagePreviewModal show={showPreview} setShow={setShowPreview} croppedImage={image}
+                                              base64CroppedImage={base64_cropped_preview}
                                               uploadCroppedImage={uploadCroppedImage}/>
+                    : null
                 }
             </>
         );
@@ -112,16 +111,18 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
 
     async function handlePreview() {
         setProccessing(true);
-        await cropImage();
+        const result = await cropImage();
+        console.log(result);
+        setBase64_cropped_preview(result);
         setProccessing(false);
         setShowPreview(true)
     }
 
     async function handleOnCrop() {
         setProccessing(true);
-        await cropImage();
+        const result_string = await cropImage();
         setProccessing(false);
-        uploadCroppedImage();
+        uploadCroppedImage(result_string);
     }
 
     async function cropImage() {
@@ -131,12 +132,12 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
             filename: image.name,
             cropp_data,
         });
-        setBase64_cropped_image(result.data.proccessed_image_base64);
+        return result.data.proccessed_image_base64;
     }
 
     //TODO : dont write new one, update existing document instead
     //TODO: anderer Name oder arbeischritte aufteilen
-    function uploadCroppedImage() {
+    function uploadCroppedImage(base64_cropped_image) {
         const storageRef = ref(firebase_storage, `/files/${image.name}`)
         console.log("hi", image);
         uploadString(storageRef,base64_cropped_image, 'base64')
@@ -146,10 +147,9 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
                     triggerToastSaved();
                 })
             })
-        //TODO: Das hat hier drinnnen eigentlich nichts verloren´
+        //TODO: Das hat hier drinnnen eigentlich nichts verloren
         setImage(null);
         setShowModal(false);
-        setShowPreview(false);
     }
 }
 
