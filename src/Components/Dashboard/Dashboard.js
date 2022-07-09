@@ -27,7 +27,7 @@ import {
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
     const [galleryFilterList, setGalleryFilterList] = useState([]);
-    const [filter, setFilter] = useState("");
+    const [filter, setFilter] = useState(() => (name) => true);
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
     const [percent, setPercent] = useState(0);
@@ -38,6 +38,7 @@ function Dashboard() {
     const [image, setImage] = useState();
     const [centredModal, setCentredModal] = useState(false);
     const triggerToastSavedRef = useRef(null);
+
 
     //TODO: This is stupid, i need a way to refresh my imagelist on edit, delete, add.
     useEffect(() => {
@@ -53,7 +54,7 @@ function Dashboard() {
                         label="Search"
                         id="form1"
                         type="text"
-                        onChange={handleFilterChange}
+                        onChange={handleSearchInput}
                     />
                     <div className="mt-4">
                         <input
@@ -215,8 +216,13 @@ function Dashboard() {
         setImagesList(imagesList.filter((img) => img.uuid !== id));
     }
 
-    function handleFilterChange(event) {
-        setFilter(event.target.value);
+    function handleSearchInput(event) {
+        const value = event.target.value;
+        const filterFunction = (name) => {
+            return name.toUpperCase()
+                .includes(value.toUpperCase().trim());
+        }
+        setFilter(() => filterFunction);
     }
 
     function retrieveImages() {
