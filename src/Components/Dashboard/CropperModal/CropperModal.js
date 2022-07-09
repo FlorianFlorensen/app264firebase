@@ -11,16 +11,14 @@ import {
 import Cropper from "react-cropper";
 import "./cropper.css"
 import CroppedImagePreviewModal from "./CroppedImageModal/CroppedImagePreviewModal";
-import {getDownloadURL, ref, uploadString} from "firebase/storage";
-import {firebase_storage, functions} from "../../../firebase";
-import {updateFileDocument} from "../../../firebase/database/databaseService";
+import {functions} from "../../../firebase";
 import {httpsCallable} from "firebase/functions";
 
 /**
  * The tricky thing with the cropper is that you need to initialize it when the modal element is actually rendered
  * if you do it before it behaves strangely. Because the cropper recieves its dimensions from the parent container
  */
-function CropperModal({image, setImage, showModal, setShowModal, toggleShow, triggerToastSaved}) {
+function CropperModal({image, showModal, setShowModal, toggleShow, uploadCroppedImage}) {
 
     const [cropper, setCropper] = useState();
     const cropperRef = useRef();
@@ -93,9 +91,11 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
                     </MDBModalDialog>
                 </MDBModal>
                 {showPreview ?
-                    <CroppedImagePreviewModal show={showPreview} setShow={setShowPreview} croppedImage={image}
-                                              base64CroppedImage={base64_cropped_preview}
-                                              uploadCroppedImage={uploadCroppedImage}/>
+                    <CroppedImagePreviewModal
+                        show={showPreview}
+                        setShow={setShowPreview}
+                        base64CroppedImage={base64_cropped_preview}
+                        handleOnSave={handleOnSave}/>
                     : null
                 }
             </>
@@ -122,7 +122,7 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
         setProccessing(true);
         const result_string = await cropImage();
         setProccessing(false);
-        uploadCroppedImage(result_string);
+        uploadCroppedImage(result_string, image);
     }
 
     async function cropImage() {
@@ -135,21 +135,8 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
         return result.data.proccessed_image_base64;
     }
 
-    //TODO : dont write new one, update existing document instead
-    //TODO: anderer Name oder arbeischritte aufteilen
-    function uploadCroppedImage(base64_cropped_image) {
-        console.log("uploading", base64_cropped_image);
-        const storageRef = ref(firebase_storage, `/files/${image.name}`)
-        console.log("hi", image);
-        uploadString(storageRef,base64_cropped_image, 'base64')
-            .then(snapshot => {
-                getDownloadURL(snapshot.ref).then(async url => {
-                    await updateFileDocument(image, url, true);
-                    triggerToastSaved();
-                })
-            })
-        //TODO: Das hat hier drinnnen eigentlich nichts verloren
-        setImage(null);
+    function handleOnSave() {
+        uploadCroppedImage(base64_cropped_preview, image);
         setShowModal(false);
     }
 }

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
     MDBBtn,
     MDBModal,
@@ -9,13 +9,9 @@ import {
     MDBModalTitle
 } from "mdb-react-ui-kit";
 
-function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedImage, base64CroppedImage}) {
+function CroppedImagePreviewModal({show, setShow, base64CroppedImage, handleOnSave}) {
 
     const toggleShow = () => setShow(!show);
-
-    useEffect(() => {
-        console.log("this is the image in the prview", croppedImage);
-    }, [croppedImage])
 
     return (
         <>
@@ -35,17 +31,13 @@ function CroppedImagePreviewModal({croppedImage, show, setShow, uploadCroppedIma
                             <MDBBtn color='secondary' onClick={toggleShow}>
                                 Close
                             </MDBBtn>
-                            <MDBBtn onClick={onSaveHandler}>Save changes</MDBBtn>
+                            <MDBBtn onClick={handleOnSave}>Save changes</MDBBtn>
                         </MDBModalFooter>
                     </MDBModalContent>
                 </MDBModalDialog>
             </MDBModal>
         </>
     );
-
-    function onSaveHandler(){
-        uploadCroppedImage(base64CroppedImage);
-    }
 }
 
 export default CroppedImagePreviewModal;

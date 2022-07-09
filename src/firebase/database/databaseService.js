@@ -10,15 +10,13 @@ import {database} from "../index";
 function addFileToStore(file, download_url, is_widget_ready) {
 
     const document = doc(database, "files", file.name);
-    setDoc(document, {
+    return setDoc(document, {
         name: file.name,
         storage_url: download_url,
         is_widget_ready: is_widget_ready,
         mime_type: file.type,
         file_created: file.lastModified
     })
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
 
     /**
      * we may not use the auto generated id to automatically overwrite the document if the image was already added,

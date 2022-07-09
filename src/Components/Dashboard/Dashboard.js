@@ -11,7 +11,7 @@ import {
     MDBTabsPane,
     MDBToast,
 } from 'mdb-react-ui-kit';
-import {ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage';
+import {ref, uploadBytesResumable, getDownloadURL, uploadString} from 'firebase/storage';
 import ImageGallery from './ImageGallery/ImageGallery';
 import './Dashboard.css';
 import './ImageGallery/Image/ImageContainer.css';
@@ -21,7 +21,7 @@ import {collection, getDocs, query} from '@firebase/firestore';
 import CropperModal from './CropperModal/CropperModal';
 import {
     addFileToStore,
-    deleteFileDocument,
+    deleteFileDocument, updateFileDocument,
 } from '../../firebase/database/databaseService';
 
 function Dashboard() {
@@ -118,8 +118,7 @@ function Dashboard() {
                         setShowModal={setCentredModal}
                         toggleShow={toggleModalShow}
                         image={image}
-                        setImage={setImage}
-                        triggerToastSaved={triggerToastSaved}
+                        uploadCroppedImage={uploadCroppedImage}
                     ></CropperModal>
                 ) : null}
             </section>
@@ -197,14 +196,20 @@ function Dashboard() {
                     setPercent(filesLeft > 0 ? totalProgress : 100);
                     filesLeft--;
                     getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                        addFileToStore(file, url, false);
+                        addFileToStore(file, url, false)
+                            .then(() => {
+                                if (filesLeft < 1) {
+                                    setUploading(false);
+                                    retrieveImages();
+                                }
+                            })
+                            .catch((err) => {
+                                console.log(err)
+                            });
                     });
                 }
             );
             //TODO: thas is a stupid way to do that
-            if (filesLeft <= 1) {
-                setUploading(false);
-            }
         }
 
     }
@@ -243,6 +248,24 @@ function Dashboard() {
                 setImagesList(temp);
             })
             .catch((error) => console.log(error));
+    }
+
+    //TODO : dont write new one, update existing document instead
+    //TODO: anderer Name oder arbeischritte aufteilen
+    function uploadCroppedImage(base64_cropped_image, image) {
+        console.log("uploading", base64_cropped_image);
+        const storageRef = ref(firebase_storage, `/files/${image.name}`)
+        console.log("hi", image);
+        uploadString(storageRef, base64_cropped_image, 'base64')
+            .then(snapshot => {
+                getDownloadURL(snapshot.ref).then(async url => {
+                    await updateFileDocument(image, url, true);
+                    triggerToastSaved();
+                    retrieveImages();
+                    setImage(null);
+                })
+            })
+        //TODO: Das hat hier drinnnen eigentlich nichts verloren
     }
 }
 
