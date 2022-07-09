@@ -1,4 +1,4 @@
-import {addDoc, collection, doc, updateDoc, deleteDoc} from "@firebase/firestore";
+import {addDoc, collection, doc, updateDoc, deleteDoc, setDoc} from "@firebase/firestore";
 import {database} from "../index";
 
 /**
@@ -8,7 +8,23 @@ import {database} from "../index";
  */
 //TODO : this should be an async function
 function addFileToStore(file, download_url, is_widget_ready) {
-    const collectionRef = collection(database, "files");
+
+    const document = doc(database, "files", file.name);
+    setDoc(document, {
+        name: file.name,
+        storage_url: download_url,
+        is_widget_ready: is_widget_ready,
+        mime_type: file.type,
+        file_created: file.lastModified
+    })
+        .then(res => console.log(res))
+        .catch(err => console.log(err));
+
+    /**
+     * we may not use the auto generated id to automatically overwrite the document if the image was already added,
+     * it works basically like a reset if you want to reedit the image
+     */
+   /* const collectionRef = collection(database, "files");
     addDoc(collectionRef, {
         name: file.name,
         storage_url: download_url,
@@ -17,7 +33,7 @@ function addFileToStore(file, download_url, is_widget_ready) {
         file_created : file.lastModified
     })
         .then(res => console.log(res))
-        .catch(err => console.log(err));
+        .catch(err => console.log(err));*/
 }
 
 /**
