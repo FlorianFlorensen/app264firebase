@@ -27,8 +27,7 @@ import {
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
     const [galleryFilterList, setGalleryFilterList] = useState([]);
-    //all Images from Database / Storage
-    const [allImages, setAllImages] = useState([]);
+    const [filter, setFilter] = useState("");
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
     const [percent, setPercent] = useState(0);
@@ -54,7 +53,7 @@ function Dashboard() {
                         label="Search"
                         id="form1"
                         type="text"
-                        onChange={imageGalleryFilter}
+                        onChange={handleFilterChange}
                     />
                     <div className="mt-4">
                         <input
@@ -93,6 +92,7 @@ function Dashboard() {
                     <MDBTabsContent>
                         <MDBTabsPane show={activeTab === 'tab1'}>
                             <ImageGallery
+                                filter={filter}
                                 imageList={imagesList.filter((img) => !img.is_widget_ready)}
                                 handleDeleteImage={handleDeleteButton}
                                 handleEditButton={handleEditButton}
@@ -100,6 +100,7 @@ function Dashboard() {
                         </MDBTabsPane>
                         <MDBTabsPane show={activeTab === 'tab2'}>
                             <ImageGallery
+                                filter={filter}
                                 imageList={imagesList.filter((img) => img.is_widget_ready)}
                                 handleDeleteImage={handleDeleteButton}
                                 handleEditButton={handleEditButton}
@@ -198,6 +199,7 @@ function Dashboard() {
                     });
                 }
             );
+            //TODO: thas is a stupid way to do that
             if (filesLeft <= 1) {
                 setUploading(false);
             }
@@ -213,19 +215,8 @@ function Dashboard() {
         setImagesList(imagesList.filter((img) => img.uuid !== id));
     }
 
-    function imageGalleryFilter(event) {
-        (async () => {
-            let filterResult = allImages.filter((image) => {
-                return (
-                    image.original_filename
-                        .toUpperCase()
-                        .includes(event.target.value.toUpperCase().trim()) &&
-                    event.target.value !== ''
-                );
-            });
-            console.log(filterResult);
-            setGalleryFilterList(filterResult);
-        })();
+    function handleFilterChange(event) {
+        setFilter(event.target.value);
     }
 
     function retrieveImages() {

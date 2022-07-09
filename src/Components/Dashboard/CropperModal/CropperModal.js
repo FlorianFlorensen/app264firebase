@@ -138,6 +138,7 @@ function CropperModal({image, setImage, showModal, setShowModal, toggleShow, tri
     //TODO : dont write new one, update existing document instead
     //TODO: anderer Name oder arbeischritte aufteilen
     function uploadCroppedImage(base64_cropped_image) {
+        console.log("uploading", base64_cropped_image);
         const storageRef = ref(firebase_storage, `/files/${image.name}`)
         console.log("hi", image);
         uploadString(storageRef,base64_cropped_image, 'base64')
