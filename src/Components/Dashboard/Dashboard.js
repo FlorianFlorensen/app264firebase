@@ -26,10 +26,11 @@ import {
 
 function Dashboard() {
     const [imagesList, setImagesList] = useState([]);
-    const [galleryFilterList, setGalleryFilterList] = useState([]);
+    //Search bar filter
     const [filter, setFilter] = useState(() => (name) => true);
     //all Files States for uploading
     const [filesToUpload, setFilesToUpload] = useState([]);
+    //Upload progress bar percent
     const [percent, setPercent] = useState(0);
     const [uploading, setUploading] = useState(false);
     //Tab Navigation
